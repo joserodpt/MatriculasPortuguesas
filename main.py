@@ -4,6 +4,7 @@
 ## ===== Script Python para Obter Diversas ======
 ## == Informações sobre Matrículas Portuguesas ==
 ## ==============================================
+
 ## Autor: José Rodrigues | https://github.com/joserodpt
 
 municipios = {
