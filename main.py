@@ -318,7 +318,7 @@ municipios = {
 }
 
 def get_municipio(digitos_identificadores):
-    print('TODO')
+    return municipios.get(digitos_identificadores)
 
 codigos_regioes = {
     'A': 'Açores (Ponta Delgada)',
@@ -416,10 +416,13 @@ def info_matricula_reboque(matricula):
                 '\n> Tipo Reboque: Reboque Militar [Exército]' +\
                 '\n> Número: ' + str(regiao)
 
-    numero = int(numero)
+    try:
+        numero = int(numero)
+    except Exception:
+        return 'Número da Matrícula Inválido.'
 
     if not isinstance(numero, int):
-        return 'Número de Matrícula Inválido.'
+        return 'Número da Matrícula Inválido.'
 
     if len(regiao) >= 3 and len(regiao) <= 1:
         return 'Região da Matrícula Inválida'
@@ -433,7 +436,7 @@ def info_matricula_reboque(matricula):
                 '\n> Número: ' + str(numero) + \
                   '\n> Região: ' + replyRegiao + ' [Código: ' + regiao + ']\n'
 
-            if regiao == 'L':
+            if regiao.lower() == 'l':
                 out = out + '\nInformação Adicional para Matrículas Reboque de Lisboa:\n> Data de Registo: ' + range_reboque_lisboa(numero)
 
 
@@ -442,11 +445,120 @@ def info_matricula_reboque(matricula):
 def validar_matricula_pre1937(matricula):
     return matricula[0].lower() in ['n', 'c', 's', 'a', 'm'] and matricula[1] == '-' and len(matricula) > 2
 
+def press_enter_to_continue():
+    input("\nPressiona Enter para Continuar...")
 
-#L-12113
-#E-12-32
-#0-M
-#print(info_matricula_reboque('VI-123'))
+def verificar_matricula_veiculos():
+    matricula = input('Inserir Matrícula:\n> ')
 
-#GNRL-123
-print(info_matricula_gnr('GNRT-123'))
+    #detetar matrículas de 1911
+    if matricula[1] == '-':
+        #matrícula de 1911
+        print("Matrícula de Série X-000 (1911-1937)") #TODO: conversão para 1937
+        if matricula[0] == 'N':
+            print('Região da Matrícula: Norte')
+        elif matricula[0] == 'C':
+            print('Região da Matrícula: Centro')
+        elif matricula[0] == 'S':
+            print('Região da Matrícula: Sul')
+        elif matricula[0] == 'A':
+            print('Região da Matrícula: Açores')
+        elif matricula[0] == 'M':
+            print('Região da Matrícula: Madeira')
+        else:
+            print('Região da Matrícula: Não Identificada')
+
+        if matricula[-2] == '-' and matricula[-1] == 'A':
+            print('Dados Adicionais:\n> Matrícula de Carro de Aluguer')
+        if matricula[-3] == '-' and matricula[-2] == 'W' and matricula[-1] == 'W':
+            print('Dados Adicionais:\n> Matrícula Provisória')
+
+    elif matricula[2] == '-':
+        #matrículas no formato
+        #XX-XX-XX
+        #01234567
+
+        if matricula[0:2].isalpha() and matricula[6:7].isalpha():
+            print("Matrícula de Série XX-00-XX (2020-)")
+        elif matricula[0:2].isalpha() and not matricula[6:7].isalpha():
+            print("Matrícula de Série XX-00-00 (1937-1991)")
+        elif not matricula[0:2].isalpha() and matricula[6:7].isalpha():
+            print("Matrícula de Série 00-00-XX (1992-2005)")
+        elif matricula[3:4].isalpha():
+            print("Matrícula de Série 00-XX-00 (2005-2020)")
+
+    else:
+        print('Formato de Matrícula Não Reconhecido.')
+
+    press_enter_to_continue()
+
+def verificar_matricula_reboques():
+    matricula = input('Inserir Matrícula-Reboque:\n> ')
+    print(info_matricula_reboque(matricula))
+    press_enter_to_continue()
+
+def verificar_matricula_carros_gnr():
+    matricula = input('Inserir Matrícula Veículo GNR (ex: GNRL-1234)\n> ')
+
+    print(info_matricula_gnr(matricula))
+
+    press_enter_to_continue()
+
+def verificar_matricula_motas_ate_2006():
+    matric = input('Inserir Matrícula Motas Até 2006 (ex: 2-OER-20-75):\n> ')
+
+    print('Informações da Matrícula de Mota Até 2006\n>>> ' + matric + '\n' + \
+        '\n> Município de Registo: ' + get_municipio(matric.split("-")[1]))
+
+    press_enter_to_continue()
+
+def verificar_matricula_veiculos_exportacao():
+    matric = input('Inserir Matrícula de Veículos de Exportação (ex: 123456-L):\n> ')
+    letra = matric.split("-")[1]
+
+    porto = "Porto de Exportação: "
+
+    if letra == "L":
+        porto = porto + "Lisboa"
+    elif letra == "P":
+        porto = porto + "Porto"
+    elif letra == "A":
+        porto = porto + "Açores"
+    elif letra == "M":
+        porto = porto + "Madeira"
+    else:
+        porto = porto + "Não Identificado"
+
+    print('Informações da Matrícula de Exportação\n>>> ' + matric + '\n' + \
+          '\n> ' + porto )
+
+    press_enter_to_continue()
+
+def main_menu():
+    while True:
+        print("\n- Matrículas Portuguesas -\n")
+        print("1. Verificar Matrícula de Veículos")
+        print("2. Verificar Matrícula de Reboques")
+        print("3. Verificar Matrícula de Carros da GNR")
+        print("4. Verificar Matrícula de Motas Até 2006")
+        print("5. Verificar Matrícula de Veículos para Exportação")
+        print("0. Sair\n")
+
+        option = input("> ")
+
+        if option == "1":
+            verificar_matricula_veiculos()
+        elif option == "2":
+            verificar_matricula_reboques()
+        elif option == "3":
+            verificar_matricula_carros_gnr()
+        elif option == "4":
+            verificar_matricula_motas_ate_2006()
+        elif option == "5":
+            verificar_matricula_veiculos_exportacao()
+        elif option == "0":
+            break
+        else:
+            print("Opção inválida.")
+
+main_menu()
