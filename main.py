@@ -510,6 +510,42 @@ def press_enter_to_continue():
     input("\nPressiona Enter para Continuar...")
 
 
+def conversaoPara1937(old_matricula):
+    if not old_matricula or '-' not in old_matricula:
+        return "Invalid input"
+
+        # Extract the city code and the numeric part from the old plate
+    city_code, number_part_str = old_matricula.split('-')
+    try:
+        number_part = int(number_part_str)
+    except ValueError:
+        return "Invalid input"
+
+    # Define the conversion logic for each city
+    if city_code == 'S':  # Lisboa
+        series_map = {0: 'AA', 10000: 'AB', 20000: 'AC', 30000: 'AD'}
+    elif city_code == 'N':  # Porto
+        series_map = {0: 'MM', 10000: 'MN'}
+    elif city_code == 'C':  # Coimbra
+        # For Coimbra, all plates convert to the same series, so we can return directly
+        return f"UU-{number_part_str.zfill(4)[:2]}-{number_part_str.zfill(4)[2:]}"
+    else:
+        return "Invalid city code"
+
+    # Determine the new series letter for Lisboa and Porto
+    for start_num in sorted(series_map.keys(), reverse=True):
+        if number_part >= start_num:
+            series_letter = series_map[start_num]
+            # Calculate the remaining number for the new format
+            remaining_number = number_part - start_num
+            # Format the remaining number into the 00-00 format
+            new_number_part = f"{remaining_number:04}"  # Pad with zeros to ensure it's at least 4 digits
+            new_plate = f"{series_letter}-{new_number_part[:2]}-{new_number_part[2:]}"
+            return new_plate
+
+    return "Conversion not possible"
+
+
 def verificar_matricula_veiculos():
     matricula = input('Inserir Matrícula:\n> ')
 
@@ -530,6 +566,9 @@ def verificar_matricula_veiculos():
         else:
             print('Região da Matrícula: Não Identificada')
 
+        print('Série: ', matricula.split("-")[1])
+        print('Conversão para a Série XX-00-00 (1937-1992): ', conversaoPara1937(matricula))
+
         if matricula[-2] == '-' and matricula[-1] == 'A':
             print('Dados Adicionais:\n> Matrícula de Carro de Aluguer')
         if matricula[-3] == '-' and matricula[-2] == 'W' and matricula[-1] == 'W':
@@ -543,7 +582,7 @@ def verificar_matricula_veiculos():
         if matricula[0:2].isalpha() and matricula[6:7].isalpha():
             print("Matrícula de Série XX-00-XX (2020-)")
         elif matricula[0:2].isalpha() and not matricula[6:7].isalpha():
-            print("Matrícula de Série XX-00-00 (1937-1991)")
+            print("Matrícula de Série XX-00-00 (1937-1992)")
         elif not matricula[0:2].isalpha() and matricula[6:7].isalpha():
             print("Matrícula de Série 00-00-XX (1992-2005)")
         elif matricula[3:4].isalpha():
