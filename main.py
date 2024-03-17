@@ -7,6 +7,59 @@
 
 ## Autor: José Rodrigues | https://github.com/joserodpt
 
+class PortugueseLicensePlate2020:
+    def __init__(self, plate="AA-00-AA"):
+        self.allowed_letters = "ABCDEFGHIJLMNOPQRSTUVXZ"
+        self.plate = plate.upper()
+        if not self._validate_plate():
+            raise ValueError("Invalid plate format")
+
+    def _validate_plate(self):
+        import re
+        # Check if the plate matches the pattern and only contains allowed letters
+        pattern = r"^[A-Z]{2}-\d{2}-[A-Z]{2}$"
+        return bool(re.match(pattern, self.plate)) and all(c in self.allowed_letters for c in self.plate if c.isalpha())
+
+    def _increment_letters(self, letters):
+        max_index = len(self.allowed_letters) - 1
+
+        first, second = letters
+        second_index = self.allowed_letters.index(second)
+
+        if second_index < max_index:
+            second = self.allowed_letters[second_index + 1]
+        else:
+            first_index = self.allowed_letters.index(first)
+            if first_index < max_index:
+                first = self.allowed_letters[first_index + 1]
+            else:
+                # Reset to the start if both reach the end
+                first = self.allowed_letters[0]
+            second = self.allowed_letters[0]
+
+        return first + second
+
+    def increment_plate(self):
+        parts = self.plate.split("-")
+        number = int(parts[1])
+        if number < 99:
+            number += 1
+            parts[1] = f"{number:02d}"
+        else:
+            parts[1] = "00"
+            parts[2] = self._increment_letters(parts[2])
+            if parts[2] == "AA":  # Rolled over the last part, increment the first part
+                parts[0] = self._increment_letters(parts[0])
+
+        self.plate = "-".join(parts)
+
+    def get_plate(self):
+        return self.plate
+
+    def get_plate_without_sep(self):
+        return self.plate.replace("-", "")
+
+
 municipios = {
     "ABT": "Abrantes",
     "AGD": "Águeda",
@@ -317,8 +370,10 @@ municipios = {
     "VZL": "Vouzela",
 }
 
+
 def get_municipio(digitos_identificadores):
     return municipios.get(digitos_identificadores)
+
 
 codigos_regioes = {
     'A': 'Açores (Ponta Delgada)',
@@ -361,6 +416,7 @@ funcoes_gnr = {
     'V': 'Ciclomotor'
 }
 
+
 def encontrar_regiao_reboque(codigo):
     codigo = codigo.upper()  # Convert to uppercase for case-insensitive comparison
 
@@ -368,6 +424,7 @@ def encontrar_regiao_reboque(codigo):
         return codigos_regioes[codigo]
     else:
         return "-"
+
 
 def range_reboque_lisboa(numero_reboque_lisboa):
     if numero_reboque_lisboa >= 25000 and numero_reboque_lisboa < 50000:
@@ -383,11 +440,13 @@ def range_reboque_lisboa(numero_reboque_lisboa):
     else:
         return "Impossível Determinar Data de Registo"
 
+
 def encontrar_funcao_GNR(funcao):
     if funcao in funcoes_gnr:
         return funcoes_gnr[funcao]
     else:
         return "Função Desconhecida."
+
 
 def info_matricula_gnr(matricula):
     if matricula.startswith("GNR") and matricula[4] == "-":
@@ -413,8 +472,8 @@ def info_matricula_reboque(matricula):
 
     if numero == 'M':
         return 'Informações da Matrícula Reboque\n>>> ' + matricula + '\n' + \
-                '\n> Tipo Reboque: Reboque Militar [Exército]' +\
-                '\n> Número: ' + str(regiao)
+            '\n> Tipo Reboque: Reboque Militar [Exército]' + \
+            '\n> Número: ' + str(regiao)
 
     try:
         numero = int(numero)
@@ -432,29 +491,32 @@ def info_matricula_reboque(matricula):
             return 'Região ' + regiao + ' inválida.'
         else:
             out = 'Informações da Matrícula Reboque\n>>> ' + matricula + '\n' + \
-                '\n> Tipo Reboque: Reboque Civil' +\
-                '\n> Número: ' + str(numero) + \
+                  '\n> Tipo Reboque: Reboque Civil' + \
+                  '\n> Número: ' + str(numero) + \
                   '\n> Região: ' + replyRegiao + ' [Código: ' + regiao + ']\n'
 
             if regiao.lower() == 'l':
-                out = out + '\nInformação Adicional para Matrículas Reboque de Lisboa:\n> Data de Registo: ' + range_reboque_lisboa(numero)
-
+                out = out + '\nInformação Adicional para Matrículas Reboque de Lisboa:\n> Data de Registo: ' + range_reboque_lisboa(
+                    numero)
 
             return out
+
 
 def validar_matricula_pre1937(matricula):
     return matricula[0].lower() in ['n', 'c', 's', 'a', 'm'] and matricula[1] == '-' and len(matricula) > 2
 
+
 def press_enter_to_continue():
     input("\nPressiona Enter para Continuar...")
+
 
 def verificar_matricula_veiculos():
     matricula = input('Inserir Matrícula:\n> ')
 
-    #detetar matrículas de 1911
+    # detetar matrículas de 1911
     if matricula[1] == '-':
-        #matrícula de 1911
-        print("Matrícula de Série X-000 (1911-1937)") #TODO: conversão para 1937
+        # matrícula de 1911
+        print("Matrícula de Série X-000 (1911-1937)")  # TODO: conversão para 1937
         if matricula[0] == 'N':
             print('Região da Matrícula: Norte')
         elif matricula[0] == 'C':
@@ -474,9 +536,9 @@ def verificar_matricula_veiculos():
             print('Dados Adicionais:\n> Matrícula Provisória')
 
     elif matricula[2] == '-':
-        #matrículas no formato
-        #XX-XX-XX
-        #01234567
+        # matrículas no formato
+        # XX-XX-XX
+        # 01234567
 
         if matricula[0:2].isalpha() and matricula[6:7].isalpha():
             print("Matrícula de Série XX-00-XX (2020-)")
@@ -492,10 +554,12 @@ def verificar_matricula_veiculos():
 
     press_enter_to_continue()
 
+
 def verificar_matricula_reboques():
     matricula = input('Inserir Matrícula-Reboque:\n> ')
     print(info_matricula_reboque(matricula))
     press_enter_to_continue()
+
 
 def verificar_matricula_carros_gnr():
     matricula = input('Inserir Matrícula Veículo GNR (ex: GNRL-1234)\n> ')
@@ -504,13 +568,15 @@ def verificar_matricula_carros_gnr():
 
     press_enter_to_continue()
 
+
 def verificar_matricula_motas_ate_2006():
     matric = input('Inserir Matrícula Motas Até 2006 (ex: 2-OER-20-75):\n> ')
 
     print('Informações da Matrícula de Mota Até 2006\n>>> ' + matric + '\n' + \
-        '\n> Município de Registo: ' + get_municipio(matric.split("-")[1]))
+          '\n> Município de Registo: ' + get_municipio(matric.split("-")[1]))
 
     press_enter_to_continue()
+
 
 def verificar_matricula_veiculos_exportacao():
     matric = input('Inserir Matrícula de Veículos de Exportação (ex: 123456-L):\n> ')
@@ -530,9 +596,65 @@ def verificar_matricula_veiculos_exportacao():
         porto = porto + "Não Identificado"
 
     print('Informações da Matrícula de Exportação\n>>> ' + matric + '\n' + \
-          '\n> ' + porto )
+          '\n> ' + porto)
 
     press_enter_to_continue()
+
+
+def numbers_to_letters(s):
+    # Define the mapping from numbers to letters
+    mapping = {
+        '0': 'O',  # Example mapping
+        '1': 'I',  # Adjust based on your needs
+        '2': 'Z',  # This is just an example; replace with correct mappings
+        '3': 'E',
+        '4': 'A',  # Adjust based on your needs
+        '5': 'S',
+        '6': 'G',  # Adjust based on your needs
+        '7': 'T',  # This is just an example; replace with correct mappings
+        '8': 'B',
+        '9': 'P'  # Adjust based on your needs
+    }
+
+    # Convert the string
+    converted_string = "".join(mapping.get(char, char) for char in s)
+
+    return converted_string
+
+
+
+def combinacoesMatriculas6Letras():
+    plate_generator = PortugueseLicensePlate2020("AA-00-AA")
+
+    conteudo = []
+
+    with open("palavras6letrasUNICAS.txt", 'r') as file:
+        conteudo = file.read().splitlines()
+        conteudo = [element.lower() for element in conteudo]
+
+        # print(numbers_to_letters("AZ31TE"))
+
+        # letras: 23
+        # todas: 27 984 100
+        # apenas serie A: 1 216 700
+
+        with open("matriculas6LetrasOut.txt", 'a') as escrita:
+
+            for i in range(0, 27984100):
+                # print(plate_generator.get_plate_without_sep())  # Initial plate
+                stringPlaca = numbers_to_letters(plate_generator.get_plate_without_sep())
+                # print(stringPlaca)
+
+                if stringPlaca.lower() in conteudo:
+                    new_line = plate_generator.get_plate() + ' encontrado como: ' + stringPlaca.upper()
+                    print(new_line)
+
+                    escrita.write(new_line + '\n')
+
+                plate_generator.increment_plate()
+
+    press_enter_to_continue()
+
 
 def main_menu():
     while True:
@@ -542,6 +664,7 @@ def main_menu():
         print("3. Verificar Matrícula de Carros da GNR")
         print("4. Verificar Matrícula de Motas Até 2006")
         print("5. Verificar Matrícula de Veículos para Exportação")
+        print("9. Combinações Matrículas ZZ-00-ZZ")
         print("0. Sair\n")
 
         option = input("> ")
@@ -556,9 +679,12 @@ def main_menu():
             verificar_matricula_motas_ate_2006()
         elif option == "5":
             verificar_matricula_veiculos_exportacao()
+        elif option == "9":
+            combinacoesMatriculas6Letras()
         elif option == "0":
             break
         else:
             print("Opção inválida.")
+
 
 main_menu()
